@@ -34,11 +34,18 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+var _this = this;
 var submitButton = document.getElementById('submit');
 var userLocation = document.getElementById('userLocation');
 var showData = document.getElementById('showData');
 var loadingIndicator = document.getElementById('loading');
+var suggestionsDiv = document.getElementById('suggestionsDiv');
 submitButton.addEventListener('click', getUserLocation);
+document.addEventListener("keydown", function (event) {
+    if (event.key == "Enter") {
+        getUserLocation();
+    }
+});
 function getUserLocation() {
     return __awaiter(this, void 0, void 0, function () {
         var userInput, locationCoordinates, response, dateToShow, error_1;
@@ -73,7 +80,6 @@ function getUserLocation() {
                 case 4:
                     error_1 = _a.sent();
                     console.error('Error fetching data:', error_1);
-                    alert('Failed to retrieve data. Please try again.');
                     return [3 /*break*/, 5];
                 case 5: return [2 /*return*/];
             }
@@ -129,6 +135,64 @@ function getLocationWeather(longitude, latitude) {
                         temperature: weatherData.current_weather.temperature,
                     };
                     return [2 /*return*/, dataToReturn];
+            }
+        });
+    });
+}
+userLocation.addEventListener('input', function () { return __awaiter(_this, void 0, void 0, function () {
+    var query;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                query = userLocation.value;
+                if (query.length < 3) {
+                    suggestionsDiv.innerHTML = '';
+                    return [2 /*return*/];
+                }
+                return [4 /*yield*/, fetchAndDisplaySuggestions(query)];
+            case 1:
+                _a.sent();
+                return [2 /*return*/];
+        }
+    });
+}); });
+function fetchAndDisplaySuggestions(query) {
+    return __awaiter(this, void 0, void 0, function () {
+        var url, response, suggestions, _loop_1, i, error_2;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    url = "https://nominatim.openstreetmap.org/search?q=".concat(encodeURIComponent(query), "&format=json");
+                    _a.label = 1;
+                case 1:
+                    _a.trys.push([1, 4, , 5]);
+                    return [4 /*yield*/, fetch(url)];
+                case 2:
+                    response = _a.sent();
+                    return [4 /*yield*/, response.json()];
+                case 3:
+                    suggestions = _a.sent();
+                    suggestionsDiv.innerHTML = '';
+                    _loop_1 = function (i) {
+                        var suggestion = suggestions[i];
+                        var div = document.createElement('div');
+                        div.textContent = suggestion.display_name;
+                        div.style.color = 'white';
+                        div.addEventListener('click', function () {
+                            userLocation.value = suggestion.display_name;
+                            suggestionsDiv.innerHTML = '';
+                        });
+                        suggestionsDiv.appendChild(div);
+                    };
+                    for (i = 0; i < suggestions.length; i++) {
+                        _loop_1(i);
+                    }
+                    return [3 /*break*/, 5];
+                case 4:
+                    error_2 = _a.sent();
+                    console.error('Error fetching location suggestions:', error_2);
+                    return [3 /*break*/, 5];
+                case 5: return [2 /*return*/];
             }
         });
     });

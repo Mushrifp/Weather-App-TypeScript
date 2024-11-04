@@ -2,8 +2,16 @@ const submitButton = document.getElementById('submit') as HTMLButtonElement
 const userLocation = document.getElementById('userLocation') as HTMLInputElement
 const showData = document.getElementById('showData') as HTMLDivElement
 const loadingIndicator = document.getElementById('loading') as HTMLDivElement
+const suggestionsDiv = document.getElementById('suggestionsDiv') as HTMLDivElement;
 
 submitButton.addEventListener('click', getUserLocation)
+
+document.addEventListener("keydown", (event) => {
+    if (event.key == "Enter") {
+        getUserLocation();
+    }
+  });
+
 
 interface mainData {
     name: string;
@@ -47,7 +55,6 @@ async function getUserLocation() {
         loadingIndicator.style.display = 'none';
     } catch (error) {
         console.error('Error fetching data:', error);
-        alert('Failed to retrieve data. Please try again.');
     }
 }
 
@@ -94,3 +101,45 @@ async function getLocationWeather(longitude: number, latitude: number): Promise<
     }
     return dataToReturn;
 }
+
+
+
+userLocation.addEventListener('input', async () => {
+    const query = userLocation.value;
+    if (query.length < 3) { 
+        suggestionsDiv.innerHTML = '';
+        return;
+    }
+
+    await fetchAndDisplaySuggestions(query);
+});
+
+
+async function fetchAndDisplaySuggestions(query: string):Promise<void> {
+    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json`;
+
+    try {
+        const response = await fetch(url);
+
+        const suggestions = await response.json();
+        suggestionsDiv.innerHTML = '';
+
+        for (let i = 0; i < suggestions.length; i++) {
+            const suggestion = suggestions[i];
+            
+            const div = document.createElement('div');
+            div.textContent = suggestion.display_name;
+            div.style.color = 'white'
+
+            div.addEventListener('click', () => {
+                userLocation.value = suggestion.display_name;
+                suggestionsDiv.innerHTML = ''; 
+            });
+
+            suggestionsDiv.appendChild(div);
+        }
+    } catch (error) {
+        console.error('Error fetching location suggestions:', error);
+    }
+}
+
